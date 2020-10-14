@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>tool</title>
+
+<style>
+</style>
+</head>
+<body>
+
+<div>
+	<h3>更换分隔符</h3>
+	<div>
+		<textarea onkeyup="count()" id="input" cols="60" rows="10"></textarea>
+		<textarea id="output" cols="60" rows="10"></textarea>
+	</div>
+
+	<div>
+		<label>
+			分隔符
+			<input type="text" id="separator" value="">
+		</label>
+		<button onclick="copyOutput()">复制</button>
+	</div>
+</div>
+	
+	<script src="module/jquery/jquery-3.2.1.min.js"></script>
+	<script src="module/jquery.cookie.js"></script>
+	<script>
+	function count() {
+		var separator = $("#separator").val();
+		var text = $("#input").val();
+		var sepReg = new RegExp(separator, "g");
+		text = text.replace(sepReg, '|');
+		text = text.replace(/(\|)\s+/g,'$1').replace(/\s+(\|)/g,'$1');
+		text = text.replace(/^\|/,'').replace(/\|$/,'');
+		text = text.trim();
+		$("#output").val(text);
+		if($("#autoCopy").is(":checked"))
+			copyOutput();
+	}
+	function copyOutput(){
+		$("#output").select();
+		document.execCommand("Copy");
+	}
+	$(function(){
+		$("#autoCopy").change(function(){
+			if($(this).is(":checked"))
+				$.cookie("autoCopy", true);
+			else $.cookie("autoCopy", false);
+		});
+		if($.cookie("autoCopy")) $("#autoCopy").attr("checked", "checked");
+		$("#separator").change(function(){
+			$.cookie("separator", $(this).val());
+		});
+		if($.cookie("separator")) $("#separator").val($.cookie("separator"));
+	});
+	</script>
+</body>
+</html>

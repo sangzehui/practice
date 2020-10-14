@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Canvas</title>
+
+	<style>
+	.main {
+		width: 500px;
+		margin: 0 auto;
+	}
+	</style>
+</head>
+<body>
+	<div class="main">
+		<canvas id="mainCanvas" width="500" height="500"></canvas>	
+	</div>
+
+	<script>
+	class Game {
+		constructor(canvas) {
+			this.canvas = canvas;
+			this.ctx = canvas.getContext('2d');
+			this.screenWidth = 500;
+		}
+		start() {
+			this.moving = false;
+			this.length = 10;
+			this.sleep = 1000/this.length;
+			this.data = [];
+			this.cellWidth = this.screenWidth / this.length;
+			this.border = this.cellWidth * 0.1;
+			this.noBorderWidth = this.cellWidth - this.border * 2;
+			for(let i=0;i<this.length;i++) {
+				this.data[i] = [];
+				for(let j=0;j<this.length;j++) {
+					let s = parseInt(Math.random() * 14);
+					if(s > 3) s = 0;
+					this.data[i][j] = {
+						state: s,
+						i: i,
+						j: j,
+						x1: i * this.cellWidth + this.border,
+						y1: j * this.cellWidth + this.border,
+						x2: (i+1) * this.cellWidth - this.border,
+						y2: (j+1) * this.cellWidth - this.border
+					};
+				}
+			}
+			const t = this;
+			this.canvas.addEventListener('click', function(e) {
+				t.click(e);
+			}, false);
+			this.render();
+		}
+		render() {
+			this.ctx.fillStyle = "#eee";
+			this.ctx.fillRect(0, 0, this.screenWidth, this.screenWidth);
+			for(let i=0;i<this.length;i++) {
+				for(let j=0;j<this.length;j++) {
+					const cell = this.data[i][j];
+					let color = "";
+					switch(cell.state) {
+						case 0: color = "#fff"; break;
+						case 1: color = "#bbb"; break;
+						case 2: color = "#999"; break;
+						default: color = "#666"; break;
+					}
+					this.ctx.fillStyle = color;
+					this.ctx.fillRect(cell.x1, cell.y1, this.noBorderWidth, this.noBorderWidth);
+				}
+			}
+		}
+		move() {
+			if(this.movingData.length != 0) {
+				let newMovingData = [];
+				for(let i=0;i<this.movingData.length;i++) {
+					const cell = this.movingData[i];
+					if(cell.state > 3) {
+						cell.state = 0;
+						for(let k=0;k<4;k++) {
+							const newCell = this.cellMove(cell, k);
+							if(newCell != undefined) 
+								newMovingData.push(newCell);
+						}
+					} else {
+						const newCell = this.cellMove(cell);
+						if(newCell != undefined) 
+							newMovingData.push(newCell);
+					}
+				}
+				this.movingData = newMovingData;
+				this.render();
+				setTimeout(()=> this.move(), this.sleep);
+			}
+		}
+		cellMove(cell, newDir) {
+			if(newDir != undefined) cell.dir = newDir;
+			const d = [[0,1],[0,-1],[1,0],[-1,0]];
+			const ni = cell.i + d[cell.dir][0];
+			const nj = cell.j + d[cell.dir][1];
+			this.data[cell.i][cell.j].state = 0;
+			if(ni >= 0 && ni < this.length && nj >=0 && nj < this.length) {
+				let newCell = this.data[ni][nj];
+				newCell.dir = cell.dir;
+				newCell.state++;
+				if(newCell.state == 1 || newCell.state > 3) {
+					return newCell;
+				}
+			} 
+		}
+		getCell(x, y) {
+			for(let i=0;i<this.length;i++) {
+				for(let j=0;j<this.length;j++) {
+					const cell = this.data[i][j];
+					if(x >= cell.x1 && x <= cell.x2 && y >= cell.y1 && y <= cell.y2)
+						return cell;
+				}
+			}
+			return undefined;
+		}
+		click(e) {
+			if(!this.moving) {
+				const x = e.layerX;
+				const y = e.layerY;
+				let cell = this.getCell(x, y);
+				if(cell) {
+					cell.state++;
+					if(cell.state > 3) {
+						this.movingData = [];
+						this.movingData.push(cell);
+						this.move();
+					}
+					this.render();
+				}
+			}
+		}
+	}
+	const canvas = document.getElementById('mainCanvas');
+	const game = new Game(canvas);
+	game.start();
+	</script>
+</body>
+</html>

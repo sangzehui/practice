@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Canvas</title>
+
+	<style>
+	.main {
+		width: 500px;
+		margin: 0 auto;
+	}
+	</style>
+</head>
+<body>
+	<div class="main">
+		<canvas id="mainCanvas" width="500" height="500"></canvas>	
+	</div>
+
+	<script>
+	var C = {
+		dom: null,
+		ctx: null,
+		screenWidth: 500,
+		size: 5,
+		blockScale: 0.8,
+		data: [],
+		init: function(){
+			var width = this.screenWidth / this.size;
+			var realWidth = width * this.blockScale;
+			var realBorder = (width - realWidth) / 2;
+			for(var i=0;i<this.size;i++) {
+				this.data[i] = [];
+				for(var j=0;j<this.size;j++) {
+					this.data[i][j] = {};
+					this.data[i][j].isShow = false;
+					this.data[i][j].layerX = width * i;
+					this.data[i][j].layerY = width * j;
+				}
+			}
+			var t = this;
+			this.dom.addEventListener('click', function(e){
+				t.click(e);
+			}, false);
+		},
+		click: function(e){
+			var x = e.layerX;
+			var y = e.layerY;
+			var width = this.screenWidth / this.size;
+			for(var i=0;i<this.size;i++) {
+				for(var j=0;j<this.size;j++) {
+					var lx = this.data[i][j].layerX;
+					var ly = this.data[i][j].layerY;
+					var lxx = lx + width;
+					var lyy = ly + width;
+					if(x >= lx && x <= lxx && y >= ly && y <= lyy) {
+						this.reverse(i, j);
+						this.reverse(i-1, j);
+						this.reverse(i+1, j);
+						this.reverse(i, j-1);
+						this.reverse(i, j+1);
+						this.render();
+						return ;
+					}
+				}
+			}
+		},
+		reverse: function(x, y){
+			if(x >= 0 && x < this.size && y >=0 && y < this.size)
+				this.data[x][y].isShow = !this.data[x][y].isShow;
+		},
+		render: function(){
+			var width = this.screenWidth / this.size;
+			var realWidth = width * this.blockScale;
+			var realBorder = (width - realWidth) / 2;
+			this.ctx.fillStyle = "#ccc";
+			this.ctx.fillRect(0, 0, this.screenWidth, this.screenWidth);
+			for(var i=0;i<this.size;i++) {
+				for(var j=0;j<this.size;j++) {
+					var x = width*i + realBorder;
+					var y = width*j + realBorder;
+					if(this.data[i][j].isShow == true)
+						this.ctx.fillStyle = "#999";
+					else this.ctx.fillStyle = "#444";
+					this.ctx.fillRect(x,y,realWidth,realWidth);
+				}
+			}
+		}
+	};
+	var canvas = document.getElementById('mainCanvas');
+	var ctx = canvas.getContext('2d');
+	C.dom = canvas;
+	C.ctx = ctx;
+	C.init();
+	C.render();
+	</script>
+</body>
+</html>
